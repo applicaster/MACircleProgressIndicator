@@ -78,7 +78,7 @@
 
 -(void)drawRect:(CGRect)rect {
     CGContextRef ctx = UIGraphicsGetCurrentContext();
-
+    
     CGPoint center = CGPointMake(rect.size.width/2, rect.size.height/2);
     float minSize = MIN(rect.size.width, rect.size.height);
     float lineWidth = _strokeWidth;
@@ -86,12 +86,51 @@
     float radius = (minSize-lineWidth)/2;
     float endAngle = M_PI*(self.value*2);
     
-    CGContextSaveGState(ctx);
-    CGContextTranslateCTM(ctx, center.x, center.y);
-    CGContextRotateCTM(ctx, -M_PI*0.5);
-    
-    CGContextSetLineWidth(ctx, lineWidth);
-    CGContextSetLineCap(ctx, kCGLineCapRound);
+    // Progress Arc:
+    if (self.pieShapeProgressBar == NO)
+    {
+        CGContextSaveGState(ctx);
+        CGContextTranslateCTM(ctx, center.x, center.y);
+        CGContextRotateCTM(ctx, -M_PI*0.5);
+        
+        CGContextSetLineWidth(ctx, lineWidth);
+        CGContextSetLineCap(ctx, kCGLineCapRound);
+        
+        CGContextBeginPath(ctx);
+        CGContextAddArc(ctx, 0, 0, radius, 0, endAngle, 0);
+        CGContextSetStrokeColorWithColor(ctx, [_color colorWithAlphaComponent:0.9].CGColor);
+        CGContextStrokePath(ctx);
+        CGContextRestoreGState(ctx);
+        
+    }
+    // Progress Pie:
+    else
+    {
+        CGContextSaveGState(ctx);
+        CGFloat circleRadius = (self.bounds.size.width / 2) - (self.strokeWidth * 2);
+        CGPoint circleCenter = CGPointMake(CGRectGetMidX(rect), CGRectGetMidY(rect));
+        CGRect circleRect = CGRectMake(circleCenter.x - circleRadius, circleCenter.y - circleRadius, 2 * circleRadius, 2 * circleRadius);
+        
+        // Draw stroked circle to delineate circle shape.
+        CGContextSetStrokeColorWithColor(ctx, [_color colorWithAlphaComponent:0.1].CGColor);
+        CGContextSetLineWidth(ctx, self.strokeWidth);
+        CGContextAddEllipseInRect(ctx, circleRect);
+        CGContextStrokePath(ctx);
+        
+        self.value = MIN(MAX(0.0, self.value), 1.0);
+        
+        CGFloat startAngle = -M_PI_2;
+        CGFloat endAngle = startAngle + (self.value * 2 * M_PI);
+        
+        CGContextSetFillColorWithColor(ctx,[_color colorWithAlphaComponent:0.9].CGColor);
+        CGContextMoveToPoint(ctx, circleCenter.x, circleCenter.x);
+        CGContextAddLineToPoint(ctx, CGRectGetMidX(circleRect), CGRectGetMinY(circleRect));
+        CGContextAddArc(ctx, circleCenter.x, circleCenter.y, circleRadius, startAngle, endAngle, NO);
+        CGContextClosePath(ctx);
+        CGContextFillPath(ctx);
+        CGContextRestoreGState(ctx);
+        
+    }
     
     if (self.hideEmptyProgressBar == YES)
     {
@@ -101,14 +140,6 @@
         CGContextSetStrokeColorWithColor(ctx, [_color colorWithAlphaComponent:0.1].CGColor);
         CGContextStrokePath(ctx);
     }
-    
-    // Progress Arc:
-    CGContextBeginPath(ctx);
-    CGContextAddArc(ctx, 0, 0, radius, 0, endAngle, 0);
-    CGContextSetStrokeColorWithColor(ctx, [_color colorWithAlphaComponent:0.9].CGColor);
-    CGContextStrokePath(ctx);
-    
-    CGContextRestoreGState(ctx);
 }
 
 @end

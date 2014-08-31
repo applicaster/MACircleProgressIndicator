@@ -36,4 +36,10 @@
  */
 @property (nonatomic) BOOL hideEmptyProgressBar;
 
+/**
+ If you'd like to design a progress bar in shape of pie.
+ @param pieShapeProgressBar The defualt value is NO. Set YES when you'd like to design a progress bar in shape of pie.
+ */
+@property (nonatomic) BOOL pieShapeProgressBar;
+
 @end
